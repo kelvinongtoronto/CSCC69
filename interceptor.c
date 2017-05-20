@@ -278,7 +278,7 @@ void my_exit_group(int status)
  */
 asmlinkage long interceptor(struct pt_regs reg) {
 	if (check_pid_monitored(reg.ax, current->pid)){
-		log_message(reg.ax, reg.bx, reg.cx, reg.dx, reg.si, reg.di, reg.bp);
+		log_message(current->pid, reg.ax, reg.bx, reg.cx, reg.dx, reg.si, reg.di, reg.bp);
 	}
 	return table[reg.ax].f(reg);
 }
