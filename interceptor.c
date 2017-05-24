@@ -362,7 +362,6 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			return -EINVAL;
 		} else if (pid == 0 && current_uid != 0){
 			return -EPERM'
-		}
 		} else if (!check_pid_from_list(pid, current->pid)){
 			return -EPERM;
 		}
