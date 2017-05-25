@@ -348,7 +348,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		} else {
 			set_addr_rw((unsigned long) sys_call_table);
 			table[syscall].intercepted = 1;
-			table[my_syscall].f = &syscall_call_table[syscall]
+			table[my_syscall].f = &syscall_call_table[syscall];
 			sys_call_table[syscall] = MY_CUSTOM_SYSCALL;
 			
 			interceptor(table[my_syscall].f);
