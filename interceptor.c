@@ -344,6 +344,12 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 
 		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) != NULL) {
 			return -EINVAL;
+		} else {
+			set_addr_rw((unsigned long) sys_call_table);
+			table[syscall].intercepted = 1;
+			original_custom_syscall = MY_CUSTOM_SYSCALL;
+			sys_call_table[syscall] = interceptor(MY_CUSTOM_SYSCALL);
+			set_addr_ro((unsigned long) sys_call_table);
 		}
 	} else if(cmd == REQUEST_SYSCALL_RELEASE){
 		if (current_uid() != 0){
@@ -354,6 +360,8 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 
 		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) != NULL) {
 			return -EINVAL;
+		} else {
+
 		}
 	} else if(cmd == REQUEST_START_MONITORING){
 		if(table[syscall].intercepted == 0) {
@@ -368,6 +376,8 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 
 		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) != NULL) {
 			return -EINVAL;
+		} else {
+
 		}
 	} else if(cmd == REQUEST_STOP_MONITORING){
 		if (!check_pid_monitored) {
@@ -380,6 +390,8 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 
 		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) != NULL) {
 			return -EINVAL;
+		} else {
+
 		}
 	}
 }
