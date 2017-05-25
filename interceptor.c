@@ -340,8 +340,6 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			return -EPERM;
 		} else if (table[syscall].intercepted != 0) {
 			return -EBUSY;
-		} else if (pid == 0) {
-
 		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) != NULL) {
 			return -EINVAL;
 		} else {
@@ -356,8 +354,6 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			return -EPERM;
 		} else if(table[syscall].intercepted == 0) {
 			return -EINVAL;
-		} else if (pid == 0) {
-
 		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) != NULL) {
 			return -EINVAL;
 		} else {
@@ -386,8 +382,6 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			return -EPERM;
 		} else if (!check_pid_from_list(pid, current->pid)){
 			return -EPERM;
-		} else if (pid == 0) {
-
 		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) != NULL) {
 			return -EINVAL;
 		} else {
