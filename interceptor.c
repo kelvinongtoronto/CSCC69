@@ -341,7 +341,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		} else if (table[syscall].intercepted != 0) {
 			return -EBUSY;
 		}
-		set_addr_rw((unsigned long)table[syscall]);
+		set_addr_rw((unsigned long) sys_call_table);
 		
 		//
 		
