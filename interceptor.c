@@ -343,10 +343,13 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) != NULL) {
 			return -EINVAL;
 		} else {
+		
 			set_addr_rw((unsigned long) sys_call_table);
 			table[syscall].intercepted = 1;
-			original_custom_syscall = MY_CUSTOM_SYSCALL;
-			sys_call_table[syscall] = interceptor(MY_CUSTOM_SYSCALL);
+			table[syscall].f = sys_call_table[syscall]; //pt_reg
+			sys_call_table[syscall] = MY_CUSTOM_SYSCALL;
+			
+			interceptor(table[syscall].*f); // Idk how to unpack struct pointers bah
 			set_addr_ro((unsigned long) sys_call_table);
 		}
 	} else if(cmd == REQUEST_SYSCALL_RELEASE){
