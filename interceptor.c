@@ -345,7 +345,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		
 		//
 		
-		table[s
+	
 	} else if(cmd == REQUEST_SYSCALL_RELEASE){
 		if (current_uid() != 0){
 			return -EPERM;
