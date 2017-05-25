@@ -333,33 +333,35 @@ asmlinkage long interceptor(struct pt_regs reg) {
  *   you might be holding, before you exit the function (including error cases!).  
  */
 asmlinkage long my_syscall(int cmd, int syscall, int pid) {
-	if(syscall < 0 || syscall > NR_syscalls || syscall == MY_CUSTOM_SYSCALL || pid < 0 || pid_task(find_vpid(pid), PIDTYPE_PID) != NULL){
+	if(syscall < 0 || syscall > NR_syscalls || syscall == MY_CUSTOM_SYSCALL || pid < 0){
 		return -EINVAL;
 	} else if(cmd == REQUEST_SYSCALL_INTERCEPT){
 	 	if (current_uid() != 0){
 			return -EPERM;
 		} else if (table[syscall].intercepted != 0) {
 			return -EBUSY;
+		} else if (pid == 0) {
+
+		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) != NULL) {
+			return -EINVAL;
+		} else {
+			set_addr_rw((unsigned long) sys_call_table);
+			table[syscall].intercepted = 1;
+			original_custom_syscall = MY_CUSTOM_SYSCALL;
+			sys_call_table[syscall] = interceptor(MY_CUSTOM_SYSCALL);
+			set_addr_ro((unsigned long) sys_call_table);
 		}
-		//
-		set_addr_rw((unsigned long) sys_call_table);
-		table[syscall].intercepted = 1;
-	
-		original_custom_syscall = MY_CUSTOM_SYSCALL;
-		sys_call_table[syscall] = interceptor(MY_CUSTOM_SYSCALL);
-		
-		set_addr_ro((unsigned long) sys_call_table);
-
-		//
-
-		
-		
-	
 	} else if(cmd == REQUEST_SYSCALL_RELEASE){
 		if (current_uid() != 0){
 			return -EPERM;
 		} else if(table[syscall].intercepted == 0) {
 			return -EINVAL;
+		} else if (pid == 0) {
+
+		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) != NULL) {
+			return -EINVAL;
+		} else {
+
 		}
 	} else if(cmd == REQUEST_START_MONITORING){
 		if(table[syscall].intercepted == 0) {
@@ -370,6 +372,12 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			return -EPERM;
 		} else if (!check_pid_from_list(pid, current->pid)){
 			return -EPERM;
+		} else if (pid == 0) {
+
+		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) != NULL) {
+			return -EINVAL;
+		} else {
+
 		}
 	} else if(cmd == REQUEST_STOP_MONITORING){
 		if (!check_pid_monitored) {
@@ -378,6 +386,12 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			return -EPERM;
 		} else if (!check_pid_from_list(pid, current->pid)){
 			return -EPERM;
+		} else if (pid == 0) {
+
+		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) != NULL) {
+			return -EINVAL;
+		} else {
+
 		}
 	}
 }
@@ -404,6 +418,7 @@ long (*orig_custom_syscall)(void);
  * - Ensure synchronization as needed.
  */
 static int init_function(void) {
+
 
 
 
