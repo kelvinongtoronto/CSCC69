@@ -349,7 +349,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			set_addr_rw((unsigned long) sys_call_table);
 			//lock 
 			table[syscall].intercepted = 1;
-			table[syscall].f = sys_call_table[syscall]; //pt_reg
+			//table[syscall].f = sys_call_table[syscall]; //pt_reg
 			sys_call_table[syscall] = interceptor(table[syscall].f);
 			
 			//interceptor(table[syscall].*f);
