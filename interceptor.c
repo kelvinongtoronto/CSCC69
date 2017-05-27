@@ -415,6 +415,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		}  else if (pid == 0) {
 			spin_lock(&pidlist_lock);
 			table[syscall].monitored = 0;
+			destroy_list(syscall);
 			spin_unlock(&pidlist_lock);
 			return 0;
 		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) == NULL) {
