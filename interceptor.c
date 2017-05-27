@@ -411,8 +411,6 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 	} else if(cmd == REQUEST_STOP_MONITORING){
 		if (!check_pid_monitored(syscall,pid)) {
 			return -EINVAL;
-		} else if (pid == 0 && current_uid() != 0){
-			return -EPERM;
 		}  else if (pid == 0) {
 			spin_lock(&pidlist_lock);
 			destroy_list(syscall);
