@@ -462,10 +462,12 @@ long (*orig_custom_syscall)(void);
  */
 static int init_function(void) {
 	
-	INIT_LIST_HEAD (&a_list);
+	
 	printk(KERN_INFO "Test init");
-	orig_custom_syscall = sys_call_table[MY_CUSTOM_SYSCALL];
-	orig_exit_group = sys_call_table[__NR_exit_group];
+	
+	INIT_LIST_HEAD (&table[MY_CUSTOM_SYSCALL]->list_head);
+	orig_custom_syscall = sys_call_table[MY_CUSTOM_SYSCALL]; // Hijack custom syscall and save
+	orig_exit_group = sys_call_table[__NR_exit_group]; //Hijack exit_group system call and save
 	spin_lock(&calltable_lock);
 	set_addr_rw((unsigned long) sys_call_table);
 	sys_call_table[MY_CUSTOM_SYSCALL] = my_syscall;
