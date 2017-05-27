@@ -497,8 +497,8 @@ static void exit_function(void)
 	spin_lock(&calltable_lock);
 	set_addr_rw((unsigned long) sys_call_table);
 	sys_call_table[MY_CUSTOM_SYSCALL] = orig_custom_syscall;
-	for (int i = 0; i != NR_syscall; i --) {
-		table[NR_syscall]
+	for (int i = 0; i != NR_syscalls; i --) {
+		//table[NR_syscall]
 		destroy_list[i];
 	}
 	sys_call_table[__NR_exit_group] = orig_exit_group;
