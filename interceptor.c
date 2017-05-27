@@ -404,6 +404,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			if (table[syscall].monitored == 2) {
 				return -EBUSY;
 			} else {
+				printk( KERN_DEBUG "hello we got to monitor 1\n" );
 				spin_lock(&pidlist_lock);
 				table[syscall].monitored = 1;
 				if (add_pid_sysc(pid, syscall) != 0) {
@@ -412,7 +413,6 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 					table[syscall].monitored = 1;
 				}
 				spin_unlock(&pidlist_lock);
-				printk( KERN_DEBUG "hello we got to monitor 1\n" );
 				return 0;
 			}
 		}
@@ -424,10 +424,10 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		} else if (current_uid() != 0 && check_pid_from_list(pid, current->pid) != 0){
 			return -EPERM;
 		} else if (pid == 0) {
+			printk( KERN_DEBUG "hello we got to stopmon 0\n" );
 			spin_lock(&pidlist_lock);
 			destroy_list(syscall);
 			spin_unlock(&pidlist_lock);
-			printk( KERN_DEBUG "hello we got to stopmon 0\n" );
 			return 0;
 		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) == NULL) {
 			return -EINVAL;
