@@ -278,21 +278,15 @@ void my_exit_group(int status)
  */
 asmlinkage long interceptor(struct pt_regs reg) {
 	if (table[reg.ax].monitored == 0) {
-		return table[reg.ax].f(reg);
 	} else if (table[reg.ax].monitored == 1) {
 		if (check_pid_monitored(reg.ax, current->pid)){
 			log_message(current->pid, reg.ax, reg.bx, reg.cx, reg.dx, reg.si, reg.di, reg.bp);
-		} else {
-			return table[reg.ax].f(reg);
-		}
 	} else {
-		if (check_pid_monitored(reg.ax, current->pid)){
-			return table[reg.ax].f(reg);
-		} else {
+		if (!check_pid_monitored(reg.ax, current->pid)){
 			log_message(current->pid, reg.ax, reg.bx, reg.cx, reg.dx, reg.si, reg.di, reg.bp);
-			return table[reg.ax].f(reg);
 		}
 	}
+	return table[reg.ax].f(reg);
 }
 
 /**
