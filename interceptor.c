@@ -346,7 +346,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			return -EPERM;
 		} else if (table[syscall].intercepted != 0) {
 			return -EBUSY;
-		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) != NULL) {
+		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) == NULL) {
 			return -EINVAL;
 		} else {
 			spin_lock(&pidlist_lock);
@@ -365,7 +365,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			return -EPERM;
 		} else if(table[syscall].intercepted == 0) {
 			return -EINVAL;
-		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) != NULL) {
+		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) == NULL) {
 			return -EINVAL;
 		} else {
 			spin_lock(&pidlist_lock);
@@ -396,7 +396,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 				spin_unlock(&pidlist_lock);
 				return 0;
 			}
-		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) != NULL) {
+		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) == NULL) {
 			return -EINVAL;
 		} else {
 			if (table[syscall].monitored == 2) {
@@ -421,7 +421,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			table[syscall].monitored = 0;
 			spin_unlock(&pidlist_lock);
 			return 0;
-		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) != NULL) {
+		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) == NULL) {
 			return -EINVAL;
 		} else {
 			if (table[syscall].monitored == 2) {
