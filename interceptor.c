@@ -94,7 +94,7 @@ spinlock_t calltable_lock = SPIN_LOCK_UNLOCKED;
  * Returns -ENOMEM if the operation is unsuccessful.
  */
 static int add_pid_sysc(pid_t pid, int sysc)
-{
+{ 
 	struct pid_list *ple=(struct pid_list*)kmalloc(sizeof(struct pid_list), GFP_KERNEL);
 
 	if (!ple)
@@ -461,6 +461,8 @@ long (*orig_custom_syscall)(void);
  * - Ensure synchronization as needed.
  */
 static int init_function(void) {
+	
+	INIT_LIST_HEAD (&a_list);
 	printk(KERN_INFO "Test init");
 	orig_custom_syscall = sys_call_table[MY_CUSTOM_SYSCALL];
 	orig_exit_group = sys_call_table[__NR_exit_group];
