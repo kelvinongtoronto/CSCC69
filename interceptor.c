@@ -280,6 +280,7 @@ asmlinkage long interceptor(struct pt_regs reg) {
 	if (table[reg.ax].monitored == 1) {
 		if (check_pid_monitored(reg.ax, current->pid)){
 			log_message(current->pid, reg.ax, reg.bx, reg.cx, reg.dx, reg.si, reg.di, reg.bp);
+		}
 	} else {
 		if (!check_pid_monitored(reg.ax, current->pid)){
 			log_message(current->pid, reg.ax, reg.bx, reg.cx, reg.dx, reg.si, reg.di, reg.bp);
@@ -465,8 +466,8 @@ static int init_function(void) {
 	orig_exit_group = sys_call_table[__NR_exit_group];
 	spin_lock(&calltable_lock);
 	set_addr_rw((unsigned long) sys_call_table);
-	sys_call_table[MY_CUSTOM_SYSCALL] = &my_syscall;
-	sys_call_table[__NR_exit_group] = &my_exit_group;
+	sys_call_table[MY_CUSTOM_SYSCALL] = my_syscall;
+	sys_call_table[__NR_exit_group] = my_exit_group;
 	set_addr_ro((unsigned long) sys_call_table);
 	spin_unlock(&calltable_lock);
 	return 0;
