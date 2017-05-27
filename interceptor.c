@@ -416,8 +416,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			}
 		}
 	} else if(cmd == REQUEST_STOP_MONITORING){
-		if (!check_pid_monitored(syscall,pid)) {
-			printk( KERN_DEBUG "there is no monitor\n" );
+		if (!check_pid_monitored(syscall,pid) && pid != 0) {
 			return -EINVAL;
 		} else if (pid == 0 && current_uid() != 0){
 			printk( KERN_DEBUG "you are not root\n" );
