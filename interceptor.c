@@ -375,7 +375,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 	} else if(cmd == REQUEST_START_MONITORING){
 		if(table[syscall].intercepted == 0) {
 			return -EINVAL;
-		} else if (check_pid_monitored) {
+		} else if (check_pid_monitored(syscall, pid) {
 			return -EBUSY;
 		} else if (pid == 0 && current_uid() != 0){
 			return -EPERM;
@@ -389,7 +389,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			return 0;
 		}
 	} else if(cmd == REQUEST_STOP_MONITORING){
-		if (!check_pid_monitored) {
+		if (!check_pid_monitored(syscall, pid) {
 			return -EINVAL;
 		} else if (pid == 0 && current_uid() != 0){
 			return -EPERM;
@@ -402,9 +402,8 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		} else {
 			return 0;
 		}
-	} else {
-		return -EINVAL;
 	}
+	return -EINVAL;
 }
 
 /**
