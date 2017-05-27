@@ -380,19 +380,19 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			return 0;
 		}
 	} else if(cmd == REQUEST_START_MONITORING){
-		if(table[syscall].intercepted == 0) {
-			printk( KERN_DEBUG "this aren't even intercepted\n" );
-			return -EINVAL;
-		} else if (check_pid_monitored(syscall, pid)) {
-			printk( KERN_DEBUG "already monitored\n" );
-			return -EBUSY;
-		} else if (pid == 0 && current_uid() != 0){
+		 if (pid == 0 && current_uid() != 0){
 			printk( KERN_DEBUG "your not root\n" );
 			return -EPERM;
 		} else if (current_uid() != 0 && check_pid_from_list(pid, current->pid) != 0){
 			printk( KERN_DEBUG "you cannot monitor with same permission\n" );
 			return -EPERM;
-		} else if (pid == 0) {
+		} else if(table[syscall].intercepted == 0) {
+			printk( KERN_DEBUG "this aren't even intercepted\n" );
+			return -EINVAL;
+		} else if (check_pid_monitored(syscall, pid)) {
+			printk( KERN_DEBUG "already monitored\n" );
+			return -EBUSY;
+		}else if (pid == 0) {
 			printk( KERN_DEBUG "monitor all\n" );
 			if (table[syscall].monitored == 2) {
 				return -EBUSY;
