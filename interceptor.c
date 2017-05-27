@@ -386,7 +386,9 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			return -EBUSY;
 		} else if (pid == 0 && current_uid() != 0){
 			return -EPERM;
-		}  else if (pid == 0) {
+		} else if (check_pid_from_list(current->pid, pid) != 0){
+			return -EPERM;
+		}else if (pid == 0) {
 			if (table[syscall].monitored == 2) {
 				return -EBUSY;
 			} else {
@@ -413,7 +415,9 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			return -EINVAL;
 		} else if (pid == 0 && current_uid() != 0){
 			return -EPERM;
-		}  else if (pid == 0) {
+		} else if (check_pid_from_list(current->pid, pid) != 0){
+			return -EPERM;
+		} else if (pid == 0) {
 			spin_lock(&pidlist_lock);
 			destroy_list(syscall);
 			spin_unlock(&pidlist_lock);
