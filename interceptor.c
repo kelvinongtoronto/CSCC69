@@ -386,13 +386,14 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			return -EBUSY;
 		} else if (pid == 0 && current_uid() != 0){
 			return -EPERM;
-		} else if (current_uid() != 0 && check_pid_from_list(current->pid, pid) != 0){
+		} else if (current_uid() != 0 && check_pid_from_list(pid, current->pid) != 0){
 			return -EPERM;
 		} else if (pid == 0) {
 			if (table[syscall].monitored == 2) {
 				return -EBUSY;
 			} else {
 				spin_lock(&pidlist_lock);
+				destroy_list(syscall);
 				table[syscall].monitored = 2;
 				spin_unlock(&pidlist_lock);
 				return 0;
@@ -405,7 +406,11 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			} else {
 				spin_lock(&pidlist_lock);
 				table[syscall].monitored = 1;
-				add_pid_sysc(pid, syscall);
+				if (add_pid_sysc(pid, syscall) != 0) {
+					return -ENOMEM;
+				} else {
+					table[syscall].monitored = 1;
+				}
 				spin_unlock(&pidlist_lock);
 				return 0;
 			}
@@ -415,7 +420,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			return -EINVAL;
 		} else if (pid == 0 && current_uid() != 0){
 			return -EPERM;
-		} else if (current_uid() != 0 && check_pid_from_list(current->pid, pid) != 0){
+		} else if (current_uid() != 0 && check_pid_from_list(pid, current->pid) != 0){
 			return -EPERM;
 		} else if (pid == 0) {
 			spin_lock(&pidlist_lock);
@@ -427,9 +432,9 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		} else {
 			if (table[syscall].monitored == 2) {
 				spin_lock(&pidlist_lock);
-				destroy_list(syscall);
-				add_pid_sysc(pid, syscall);
-				table[syscall].monitored = 2;
+				if (add_pid_sysc(pid, syscall) != 0) {
+					return -ENOMEM;
+				}
 				spin_unlock(&pidlist_lock);
 			} else {
 				spin_lock(&pidlist_lock);
