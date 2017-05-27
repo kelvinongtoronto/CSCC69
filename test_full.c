@@ -176,13 +176,20 @@ void test_syscall(int syscall) {
 	do_start(syscall, 0, 0);
 	do_stop(syscall, 0, 0);
 	
+	int num_calls = 0;
+	//ENOM
+	for (num_calls = 0; num_calls <50; num_calls ++) {
+		
+		do_start(syscall, i, 0);
+		
+	}
 	do_start(syscall, 20, 0);
 	do_stop(syscall, 20, 0);
 	//EINVAL
 	//EPERM
 	//EINVAL
 	//EBUSY
-	//ENOM
+	
 
 	do_start(syscall, 1, 0);
 	do_as_guest("./test_full stop %d 1 %d", syscall, -EPERM);
