@@ -181,8 +181,8 @@ void test_syscall(int syscall) {
 	
 	for (num_calls = 0; num_calls < 50; num_calls ++) {
 		
-		do_start(syscall, num_calls, -ENOMEM);
-		
+		do_start(syscall, num_calls, 0);
+		do_stop(syscall, num_calls, 0);
 	} 
 	
 	do_start(syscall, 51, -ENOMEM);
