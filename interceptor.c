@@ -341,7 +341,6 @@ asmlinkage long interceptor(struct pt_regs reg) {
  */
 asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 	if(syscall < 0 || syscall > NR_syscalls || syscall == MY_CUSTOM_SYSCALL || pid < 0){
-		printk( KERN_DEBUG "start test\n" );
 		return -EINVAL;
 	} else if(cmd == REQUEST_SYSCALL_INTERCEPT){
 	 	if (current_uid() != 0){
@@ -405,7 +404,6 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			if (table[syscall].monitored == 2) {
 				return -EBUSY;
 			} else {
-				printk( KERN_DEBUG "hello we got to monitor 1\n" );
 				spin_lock(&pidlist_lock);
 				table[syscall].monitored = 1;
 				if (add_pid_sysc(pid, syscall) != 0) {
@@ -419,20 +417,25 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		}
 	} else if(cmd == REQUEST_STOP_MONITORING){
 		if (!check_pid_monitored(syscall,pid)) {
+			printk( KERN_DEBUG "there is no monitor\n" );
 			return -EINVAL;
 		} else if (pid == 0 && current_uid() != 0){
+			printk( KERN_DEBUG "you are not root\n" );
 			return -EPERM;
 		} else if (current_uid() != 0 && check_pid_from_list(pid, current->pid) != 0){
+			printk( KERN_DEBUG "you don't have the same permission\n" );
 			return -EPERM;
 		} else if (pid == 0) {
-			printk( KERN_DEBUG "hello we got to stopmon 0\n" );
+			printk( KERN_DEBUG "this is valid stopmon 0\n" );
 			spin_lock(&pidlist_lock);
 			destroy_list(syscall);
 			spin_unlock(&pidlist_lock);
 			return 0;
 		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) == NULL) {
+			printk( KERN_DEBUG "not a valid pid\n" );
 			return -EINVAL;
 		} else {
+			printk( KERN_DEBUG "final stopmon\n" );
 			if (table[syscall].monitored == 2) {
 				spin_lock(&pidlist_lock);
 				if (add_pid_sysc(pid, syscall) != 0) {
