@@ -465,8 +465,9 @@ static int init_function(void) {
 	
 	printk(KERN_INFO "Test init");
 	
-	INIT_LIST_HEAD (&some_list);
-	//INIT_LIST_HEAD (&table[MY_CUSTOM_SYSCALL].my_list);
+	//INIT_LIST_HEAD (&some_list);
+	//while 
+	//INIT_LIST_HEAD (&table[NR].my_list);
 	orig_custom_syscall = sys_call_table[MY_CUSTOM_SYSCALL]; // Hijack custom syscall and save
 	orig_exit_group = sys_call_table[__NR_exit_group]; //Hijack exit_group system call and save
 	spin_lock(&calltable_lock);
@@ -490,10 +491,16 @@ static int init_function(void) {
  */
 static void exit_function(void)
 {        
+	
+	
 	printk(KERN_INFO "Test exit");
 	spin_lock(&calltable_lock);
 	set_addr_rw((unsigned long) sys_call_table);
 	sys_call_table[MY_CUSTOM_SYSCALL] = orig_custom_syscall;
+	for (int i = 0; i != NR_syscall; i --) {
+		table[NR_syscall]
+		destroy_list[i];
+	}
 	sys_call_table[__NR_exit_group] = orig_exit_group;
 	set_addr_ro((unsigned long) sys_call_table);
 	spin_unlock(&calltable_lock);
