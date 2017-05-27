@@ -423,10 +423,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			}
 		}
 	} else if(cmd == REQUEST_STOP_MONITORING){
-		if (!check_pid_monitored(syscall,pid) && pid != 0) {
-			printk( KERN_DEBUG "not monitored\n" );
-			return -EINVAL;
-		} else if (pid == 0 && current_uid() != 0){
+		 if (pid == 0 && current_uid() != 0){
 			printk( KERN_DEBUG "you are not root\n" );
 			return -EPERM;
 		} else if (current_uid() != 0 && check_pid_from_list(pid, current->pid) != 0){
@@ -438,6 +435,9 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			destroy_list(syscall);
 			spin_unlock(&pidlist_lock);
 			return 0;
+		} else if (!check_pid_monitored(syscall,pid)) {
+			printk( KERN_DEBUG "not monitored\n" );
+			return -EINVAL;
 		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) == NULL) {
 			printk( KERN_DEBUG "not a valid pid\n" );
 			return -EINVAL;
