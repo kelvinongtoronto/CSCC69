@@ -281,11 +281,12 @@ asmlinkage long interceptor(struct pt_regs reg) {
 		if (check_pid_monitored(reg.ax, current->pid)){
 			log_message(current->pid, reg.ax, reg.bx, reg.cx, reg.dx, reg.si, reg.di, reg.bp);
 		}
-	} else {
+	} 
+	if (table[reg.ax].monitored == 2){
 		if (!check_pid_monitored(reg.ax, current->pid)){
 			log_message(current->pid, reg.ax, reg.bx, reg.cx, reg.dx, reg.si, reg.di, reg.bp);
 		}
-	}
+	} 
 	return table[reg.ax].f(reg);
 }
 
@@ -385,11 +386,14 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			return -EBUSY;
 		} else if (pid == 0 && current_uid() != 0){
 			return -EPERM;
-		}  else if (pid == 0) {
+		} else if (current_uid() != 0 && check_pid_from_list(pid, current->pid) != 0){
+			return -EPERM;
+		} else if (pid == 0) {
 			if (table[syscall].monitored == 2) {
 				return -EBUSY;
 			} else {
 				spin_lock(&pidlist_lock);
+				destroy_list(syscall);
 				table[syscall].monitored = 2;
 				spin_unlock(&pidlist_lock);
 				return 0;
@@ -402,29 +406,41 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			} else {
 				spin_lock(&pidlist_lock);
 				table[syscall].monitored = 1;
-				add_pid_sysc(pid, syscall);
+				if (add_pid_sysc(pid, syscall) != 0) {
+					return -ENOMEM;
+				} else {
+					table[syscall].monitored = 1;
+				}
 				spin_unlock(&pidlist_lock);
 				return 0;
 			}
 		}
 	} else if(cmd == REQUEST_STOP_MONITORING){
-		if (!check_pid_monitored(syscall,pid)) {
+		if (!check_pid_monitored(syscall,pid) && pid != 0) {
+			printk( KERN_DEBUG "not monitored\n" );
 			return -EINVAL;
 		} else if (pid == 0 && current_uid() != 0){
+			printk( KERN_DEBUG "you are not root\n" );
 			return -EPERM;
-		}  else if (pid == 0) {
+		} else if (current_uid() != 0 && check_pid_from_list(pid, current->pid) != 0){
+			printk( KERN_DEBUG "you don't have the same permission\n" );
+			return -EPERM;
+		} else if (pid == 0) {
+			printk( KERN_DEBUG "this is valid stop monitor 0\n" );
 			spin_lock(&pidlist_lock);
 			destroy_list(syscall);
 			spin_unlock(&pidlist_lock);
 			return 0;
 		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) == NULL) {
+			printk( KERN_DEBUG "not a valid pid\n" );
 			return -EINVAL;
 		} else {
+			printk( KERN_DEBUG "final stop monitor\n" );
 			if (table[syscall].monitored == 2) {
 				spin_lock(&pidlist_lock);
-				destroy_list(syscall);
-				add_pid_sysc(pid, syscall);
-				table[syscall].monitored = 2;
+				if (add_pid_sysc(pid, syscall) != 0) {
+					return -ENOMEM;
+				}
 				spin_unlock(&pidlist_lock);
 			} else {
 				spin_lock(&pidlist_lock);
@@ -469,7 +485,7 @@ static int init_function(void) {
 	set_addr_ro((unsigned long) sys_call_table);
 	spin_unlock(&calltable_lock);
 	spin_lock(&pidlist_lock);
-	for(s = 1; s < NR_syscalls; s++) {
+	for(s = 0; s < NR_syscalls; s++) {
 		table[s].intercepted = 0;
 		table[s].monitored = 0;
 		table[s].listcount = 0;
@@ -491,18 +507,12 @@ static int init_function(void) {
  */
 static void exit_function(void)
 {   
-	int s = 0;
 	spin_lock(&calltable_lock);
 	set_addr_rw((unsigned long) sys_call_table);
 	sys_call_table[MY_CUSTOM_SYSCALL] = orig_custom_syscall;
 	sys_call_table[__NR_exit_group] = orig_exit_group;
 	set_addr_ro((unsigned long) sys_call_table);
 	spin_unlock(&calltable_lock);
-	spin_lock(&pidlist_lock);
-	for(s = 1; s < NR_syscalls; s++) {
-		destroy_list(s);
-	}
-	spin_unlock(&pidlist_lock);
 }
 
 module_init(init_function);
