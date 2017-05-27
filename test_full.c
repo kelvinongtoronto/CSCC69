@@ -151,6 +151,7 @@ void do_as_guest(const char *str, int args1, int args2) {
 }
 
 int do_nonroot(int syscall) {
+	do_as_guest("./test_full nonroot %d", syscall, 0);
 	do_intercept(syscall, -EPERM);
 	do_release(syscall, -EPERM);
 	do_start(syscall, 0, -EPERM);
