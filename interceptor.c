@@ -401,6 +401,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) == NULL) {
 			return -EINVAL;
 		} else {
+			printk( KERN_DEBUG "Hello world!\n" );
 			if (table[syscall].monitored == 2) {
 				return -EBUSY;
 			} else {
