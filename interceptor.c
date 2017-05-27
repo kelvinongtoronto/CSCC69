@@ -355,7 +355,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			spin_unlock(&pidlist_lock);
 			spin_lock(&calltable_lock);
 			set_addr_rw((unsigned long) sys_call_table);
-			sys_call_table[syscall] = interceptor;
+			sys_call_table[syscall] = &interceptor;
 			set_addr_ro((unsigned long) sys_call_table);
 			spin_unlock(&calltable_lock);
 			return 0;
@@ -467,8 +467,8 @@ static int init_function(void) {
 	orig_exit_group = sys_call_table[__NR_exit_group];
 	spin_lock(&calltable_lock);
 	set_addr_rw((unsigned long) sys_call_table);
-	sys_call_table[MY_CUSTOM_SYSCALL] = my_syscall;
-	sys_call_table[__NR_exit_group] = my_exit_group;
+	sys_call_table[MY_CUSTOM_SYSCALL] = &my_syscall;
+	sys_call_table[__NR_exit_group] = &my_exit_group;
 	set_addr_ro((unsigned long) sys_call_table);
 	spin_unlock(&calltable_lock);
 	spin_lock(&pidlist_lock);
