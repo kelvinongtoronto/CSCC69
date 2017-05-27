@@ -422,8 +422,8 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		} else {
 			if (table[syscall].monitored == 2) {
 				spin_lock(&pidlist_lock);
-				add_pid_sysc(pid, syscall);
 				destroy_list(syscall);
+				add_pid_sysc(pid, syscall);
 				spin_unlock(&pidlist_lock);
 			} else {
 				spin_lock(&pidlist_lock);
