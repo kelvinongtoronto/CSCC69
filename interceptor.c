@@ -382,24 +382,51 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		} else if (!check_pid_from_list(pid, current->pid)){
 			return -EPERM;
 		} else if (pid == 0) {
-
+			if (table[syscall].monitored == 2) {
+				return -EBUSY;
+			} else {
+				spin_lock(&pidlist_lock);
+				table[syscall].monitored = 2;
+				spin_unlock(&pidlist_lock);
+				return 0;
+			}
 		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) != NULL) {
 			return -EINVAL;
 		} else {
-			return 0;
+			if (table[syscall].monitored == 2) {
+				return -EBUSY;
+			} else {
+				spin_lock(&pidlist_lock);
+				table[syscall].monitored = 1;
+				add_pid_sysc(pid, syscall);
+				spin_unlock(&pidlist_lock);
+				return 0;
+			}
 		}
-	} else if(cmd == REQUEST_STOP_MONITORING) {
-		if (!check_pid_monitored(syscall, pid)) {
+	} else if(cmd == REQUEST_STOP_MONITORING){
+		if (!check_pid_monitored(syscall,pid)) {
 			return -EINVAL;
 		} else if (pid == 0 && current_uid() != 0){
 			return -EPERM;
 		} else if (!check_pid_from_list(pid, current->pid)){
 			return -EPERM;
 		} else if (pid == 0) {
-
+			spin_lock(&pidlist_lock);
+			table[syscall].monitored = 0;
+			spin_unlock(&pidlist_lock);
+			return 0;
 		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) != NULL) {
 			return -EINVAL;
 		} else {
+			if (table[syscall].monitored == 2) {
+				spin_lock(&pidlist_lock);
+				add_pid_sysc(pid, syscall);
+				spin_unlock(&pidlist_lock);
+			} else {
+				spin_lock(&pidlist_lock);
+				del_pid_sysc(pid, syscall);
+				spin_unlock(&pidlist_lock);
+			}
 			return 0;
 		}
 	}
