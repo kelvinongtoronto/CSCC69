@@ -492,12 +492,13 @@ static int init_function(void) {
 static void exit_function(void)
 {        
 	
+	int i;
 	
 	printk(KERN_INFO "Test exit");
 	spin_lock(&calltable_lock);
 	set_addr_rw((unsigned long) sys_call_table);
 	sys_call_table[MY_CUSTOM_SYSCALL] = orig_custom_syscall;
-	for (int i = 0; i != NR_syscalls; i --) {
+	for (i = 0; i != NR_syscalls; i ++) {
 		//table[NR_syscall]
 		destroy_list[i];
 	}
