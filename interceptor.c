@@ -469,7 +469,7 @@ static int init_function(void) {
 	set_addr_ro((unsigned long) sys_call_table);
 	spin_unlock(&calltable_lock);
 	spin_lock(&pidlist_lock);
-	for(s = 0; s < NR_syscalls; s++) {
+	for(s = 1; s < NR_syscalls; s++) {
 		table[s].intercepted = 0;
 		table[s].monitored = 0;
 		table[s].listcount = 0;
@@ -499,7 +499,7 @@ static void exit_function(void)
 	set_addr_ro((unsigned long) sys_call_table);
 	spin_unlock(&calltable_lock);
 	spin_lock(&pidlist_lock);
-	for(s = 0; s < NR_syscalls; s++) {
+	for(s = 1; s < NR_syscalls; s++) {
 		destroy_list(s);
 	}
 	spin_unlock(&pidlist_lock);
