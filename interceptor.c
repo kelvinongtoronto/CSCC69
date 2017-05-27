@@ -417,6 +417,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		}
 	} else if(cmd == REQUEST_STOP_MONITORING){
 		if (!check_pid_monitored(syscall,pid) && pid != 0) {
+			printk( KERN_DEBUG "not monitored\n" );
 			return -EINVAL;
 		} else if (pid == 0 && current_uid() != 0){
 			printk( KERN_DEBUG "you are not root\n" );
@@ -425,7 +426,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			printk( KERN_DEBUG "you don't have the same permission\n" );
 			return -EPERM;
 		} else if (pid == 0) {
-			printk( KERN_DEBUG "this is valid stopmon 0\n" );
+			printk( KERN_DEBUG "this is valid stop monitor 0\n" );
 			spin_lock(&pidlist_lock);
 			destroy_list(syscall);
 			spin_unlock(&pidlist_lock);
@@ -434,7 +435,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			printk( KERN_DEBUG "not a valid pid\n" );
 			return -EINVAL;
 		} else {
-			printk( KERN_DEBUG "final stopmon\n" );
+			printk( KERN_DEBUG "final stop monitor\n" );
 			if (table[syscall].monitored == 2) {
 				spin_lock(&pidlist_lock);
 				if (add_pid_sysc(pid, syscall) != 0) {
