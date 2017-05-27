@@ -427,6 +427,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			if (table[syscall].monitored == 2) {
 				spin_lock(&pidlist_lock);
 				add_pid_sysc(pid, syscall);
+				destroy_list(syscall);
 				spin_unlock(&pidlist_lock);
 			} else {
 				spin_lock(&pidlist_lock);
@@ -461,7 +462,7 @@ long (*orig_custom_syscall)(void);
  * - Ensure synchronization as needed.
  */
 static int init_function(void) {
-	printk(KERN_INFO "Test init");
+	int s = 0;
 	orig_custom_syscall = sys_call_table[MY_CUSTOM_SYSCALL];
 	orig_exit_group = sys_call_table[__NR_exit_group];
 	spin_lock(&calltable_lock);
@@ -470,6 +471,14 @@ static int init_function(void) {
 	sys_call_table[__NR_exit_group] = my_exit_group;
 	set_addr_ro((unsigned long) sys_call_table);
 	spin_unlock(&calltable_lock);
+	for(s = 1; s < NR_syscalls; s++) {
+		spin_lock(&pidlist_lock);
+		table[s].intercepted = 0;
+		table[s].monitored = 0;
+		table[s].listcount = 0;
+		INIT_LIST_HEAD (&table[MY_CUSTOM_SYSCALL].my_list);
+		spin_unlock(&pidlist_lock);
+	}
 	return 0;
 }
 
@@ -484,14 +493,19 @@ static int init_function(void) {
  * - Ensure synchronization, if needed.
  */
 static void exit_function(void)
-{        
-	printk(KERN_INFO "Test exit");
+{   
+	int s = 0
 	spin_lock(&calltable_lock);
 	set_addr_rw((unsigned long) sys_call_table);
 	sys_call_table[MY_CUSTOM_SYSCALL] = orig_custom_syscall;
 	sys_call_table[__NR_exit_group] = orig_exit_group;
 	set_addr_ro((unsigned long) sys_call_table);
 	spin_unlock(&calltable_lock);
+	for(s = 1; s < NR_syscalls; s++) {
+		spin_lock(&pidlist_lock);
+		destroy_list(s);
+		spin_unlock(&pidlist_lock);
+	}
 }
 
 module_init(init_function);
