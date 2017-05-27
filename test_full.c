@@ -178,11 +178,12 @@ void test_syscall(int syscall) {
 	
 	int num_calls = 0;
 	//ENOM
+	/**
 	for (num_calls = 0; num_calls <50; num_calls ++) {
 		
 		do_start(syscall, i, 0);
 		
-	}
+	} **/
 	do_start(syscall, 20, 0);
 	do_stop(syscall, 20, 0);
 	//EINVAL
