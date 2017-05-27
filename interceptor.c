@@ -492,7 +492,6 @@ static int init_function(void) {
  */
 static void exit_function(void)
 {   
-	int s = 0;
 	spin_lock(&calltable_lock);
 	set_addr_rw((unsigned long) sys_call_table);
 	sys_call_table[MY_CUSTOM_SYSCALL] = orig_custom_syscall;
