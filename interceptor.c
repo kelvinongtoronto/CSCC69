@@ -94,7 +94,7 @@ spinlock_t calltable_lock = SPIN_LOCK_UNLOCKED;
  * Returns -ENOMEM if the operation is unsuccessful.
  */
 static int add_pid_sysc(pid_t pid, int sysc)
-{ 
+{
 	struct pid_list *ple=(struct pid_list*)kmalloc(sizeof(struct pid_list), GFP_KERNEL);
 
 	if (!ple)
@@ -346,7 +346,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			return -EPERM;
 		} else if (table[syscall].intercepted != 0) {
 			return -EBUSY;
-		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) != NULL) {
+		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) == NULL) {
 			return -EINVAL;
 		} else {
 			spin_lock(&pidlist_lock);
@@ -365,7 +365,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			return -EPERM;
 		} else if(table[syscall].intercepted == 0) {
 			return -EINVAL;
-		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) != NULL) {
+		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) == NULL) {
 			return -EINVAL;
 		} else {
 			spin_lock(&pidlist_lock);
@@ -396,7 +396,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 				spin_unlock(&pidlist_lock);
 				return 0;
 			}
-		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) != NULL) {
+		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) == NULL) {
 			return -EINVAL;
 		} else {
 			if (table[syscall].monitored == 2) {
@@ -421,12 +421,13 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			table[syscall].monitored = 0;
 			spin_unlock(&pidlist_lock);
 			return 0;
-		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) != NULL) {
+		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) == NULL) {
 			return -EINVAL;
 		} else {
 			if (table[syscall].monitored == 2) {
 				spin_lock(&pidlist_lock);
 				add_pid_sysc(pid, syscall);
+				destroy_list(syscall);
 				spin_unlock(&pidlist_lock);
 			} else {
 				spin_lock(&pidlist_lock);
@@ -461,27 +462,23 @@ long (*orig_custom_syscall)(void);
  * - Ensure synchronization as needed.
  */
 static int init_function(void) {
-	
-	int i;
-	printk(KERN_INFO "Test init");
-	
-	//INIT_LIST_HEAD (&some_list);
-	//while 
-	//INIT_LIST_HEAD (&table[NR].my_list);
-	orig_custom_syscall = sys_call_table[MY_CUSTOM_SYSCALL]; // Hijack custom syscall and save
-	orig_exit_group = sys_call_table[__NR_exit_group]; //Hijack exit_group system call and save
+	int s = 0;
+	orig_custom_syscall = sys_call_table[MY_CUSTOM_SYSCALL];
+	orig_exit_group = sys_call_table[__NR_exit_group];
 	spin_lock(&calltable_lock);
 	set_addr_rw((unsigned long) sys_call_table);
 	sys_call_table[MY_CUSTOM_SYSCALL] = my_syscall;
 	sys_call_table[__NR_exit_group] = my_exit_group;
-	//
-	for (i = 0; i != NR_syscalls; i ++) {
-	//table[NR_syscall]
-		destroy_list(i);
-	}
-	//
 	set_addr_ro((unsigned long) sys_call_table);
 	spin_unlock(&calltable_lock);
+	spin_lock(&pidlist_lock);
+	for(s = 0; s < NR_syscalls; s++) {
+		table[s].intercepted = 0;
+		table[s].monitored = 0;
+		table[s].listcount = 0;
+		INIT_LIST_HEAD (&table[s].my_list);
+	}
+	spin_unlock(&pidlist_lock);
 	return 0;
 }
 
@@ -496,23 +493,19 @@ static int init_function(void) {
  * - Ensure synchronization, if needed.
  */
 static void exit_function(void)
-{        
-	
-	int i;
-	
-	printk(KERN_INFO "Test exit");
+{   
+	int s = 0;
 	spin_lock(&calltable_lock);
 	set_addr_rw((unsigned long) sys_call_table);
 	sys_call_table[MY_CUSTOM_SYSCALL] = orig_custom_syscall;
 	sys_call_table[__NR_exit_group] = orig_exit_group;
-	
-	for (i = 0; i < NR_syscalls; i ++) {
-		//table[NR_syscall]
-		//destroy_list(i);
-	}
-
 	set_addr_ro((unsigned long) sys_call_table);
 	spin_unlock(&calltable_lock);
+	spin_lock(&pidlist_lock);
+	for(s = 0; s < NR_syscalls; s++) {
+		destroy_list(s);
+	}
+	spin_unlock(&pidlist_lock);
 }
 
 module_init(init_function);
