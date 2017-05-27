@@ -476,7 +476,7 @@ static int init_function(void) {
 		table[s].intercepted = 0;
 		table[s].monitored = 0;
 		table[s].listcount = 0;
-		INIT_LIST_HEAD (&table[MY_CUSTOM_SYSCALL].my_list);
+		INIT_LIST_HEAD (&table[s].my_list);
 	}
 	spin_unlock(&pidlist_lock);
 	return 0;
