@@ -277,14 +277,8 @@ void my_exit_group(int status)
  * - Don't forget to call the original system call, so we allow processes to proceed as normal.
  */
 asmlinkage long interceptor(struct pt_regs reg) {
-	if (table[reg.ax].monitored == 0) {
-	} else if (table[reg.ax].monitored == 1) {
-		if (check_pid_monitored(reg.ax, current->pid)){
-			log_message(current->pid, reg.ax, reg.bx, reg.cx, reg.dx, reg.si, reg.di, reg.bp);
-	} else {
-		if (!check_pid_monitored(reg.ax, current->pid)){
-			log_message(current->pid, reg.ax, reg.bx, reg.cx, reg.dx, reg.si, reg.di, reg.bp);
-		}
+	if (check_pid_monitored(reg.ax, current->pid)){
+		log_message(current->pid, reg.ax, reg.bx, reg.cx, reg.dx, reg.si, reg.di, reg.bp);
 	}
 	return table[reg.ax].f(reg);
 }
@@ -381,58 +375,31 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 	} else if(cmd == REQUEST_START_MONITORING){
 		if(table[syscall].intercepted == 0) {
 			return -EINVAL;
-		} else if (check_pid_monitored(syscall, pid)) {
+		} else if (check_pid_monitored) {
 			return -EBUSY;
 		} else if (pid == 0 && current_uid() != 0){
 			return -EPERM;
 		} else if (!check_pid_from_list(pid, current->pid)){
 			return -EPERM;
 		} else if (pid == 0) {
-			if (table[syscall].monitored == 2) {
-				return -EBUSY;
-			} else {
-				spin_lock(&pidlist_lock);
-				table[syscall].monitored = 2;
-				spin_unlock(&pidlist_lock);
-				return 0;
-			}
+
 		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) != NULL) {
 			return -EINVAL;
 		} else {
-			if (table[syscall].monitored == 2) {
-				return -EBUSY;
-			} else {
-				spin_lock(&pidlist_lock);
-				table[syscall].monitored = 1;
-				add_pid_sysc(pid, syscall);
-				spin_unlock(&pidlist_lock);
-				return 0;
-			}
+			return 0;
 		}
 	} else if(cmd == REQUEST_STOP_MONITORING){
-		if (!check_pid_monitored(syscall,pid)) {
+		if (!check_pid_monitored) {
 			return -EINVAL;
 		} else if (pid == 0 && current_uid() != 0){
 			return -EPERM;
 		} else if (!check_pid_from_list(pid, current->pid)){
 			return -EPERM;
 		} else if (pid == 0) {
-			spin_lock(&pidlist_lock);
-			table[syscall].monitored = 0;
-			spin_unlock(&pidlist_lock);
-			return 0;
+
 		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) != NULL) {
 			return -EINVAL;
 		} else {
-			if (table[syscall].monitored == 2) {
-				spin_lock(&pidlist_lock);
-				add_pid_sysc(pid, syscall);
-				spin_unlock(&pidlist_lock);
-			} else {
-				spin_lock(&pidlist_lock);
-				del_pid_sysc(pid, syscall);
-				spin_unlock(&pidlist_lock);
-			}
 			return 0;
 		}
 	} else {
@@ -462,7 +429,15 @@ long (*orig_custom_syscall)(void);
  * - Ensure synchronization as needed.
  */
 static int init_function(void) {
-	
+	printk(KERN_INFO "Test init");
+	orig_custom_syscall = sys_call_table[MY_CUSTOM_SYSCALL];
+	orig_exit_group = sys_call_table[__NR_exit_group];
+	spin_lock(&calltable_lock);
+	set_addr_rw((unsigned long) sys_call_table);
+	sys_call_table[MY_CUSTOM_SYSCALL] = my_syscall;
+	sys_call_table[__NR_exit_group] = my_exit_group;
+	set_addr_ro((unsigned long) sys_call_table);
+	spin_unlock(&calltable_lock);
 	return 0;
 }
 
@@ -478,9 +453,14 @@ static int init_function(void) {
  */
 static void exit_function(void)
 {        
-	
+	printk(KERN_INFO "Test exit");
+	spin_lock(&calltable_lock);
+	set_addr_rw((unsigned long) sys_call_table);
+	sys_call_table[MY_CUSTOM_SYSCALL] = orig_custom_syscall;
+	sys_call_table[__NR_exit_group] = orig_exit_group;
+	set_addr_ro((unsigned long) sys_call_table);
+	spin_unlock(&calltable_lock);
 }
 
 module_init(init_function);
 module_exit(exit_function);
-
