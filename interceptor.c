@@ -281,11 +281,12 @@ asmlinkage long interceptor(struct pt_regs reg) {
 		if (check_pid_monitored(reg.ax, current->pid)){
 			log_message(current->pid, reg.ax, reg.bx, reg.cx, reg.dx, reg.si, reg.di, reg.bp);
 		}
-	} else {
+	} 
+	if (table[reg.ax].monitored == 2){
 		if (!check_pid_monitored(reg.ax, current->pid)){
 			log_message(current->pid, reg.ax, reg.bx, reg.cx, reg.dx, reg.si, reg.di, reg.bp);
 		}
-	}
+	} 
 	return table[reg.ax].f(reg);
 }
 
