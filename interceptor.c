@@ -416,7 +416,6 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		}  else if (pid == 0) {
 			spin_lock(&pidlist_lock);
 			destroy_list(syscall);
-			table[syscall].monitored = 0;
 			spin_unlock(&pidlist_lock);
 			return 0;
 		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) == NULL) {
@@ -500,11 +499,6 @@ static void exit_function(void)
 	sys_call_table[__NR_exit_group] = orig_exit_group;
 	set_addr_ro((unsigned long) sys_call_table);
 	spin_unlock(&calltable_lock);
-	spin_lock(&pidlist_lock);
-	for(s = 0; s < NR_syscalls; s++) {
-		destroy_list(s);
-	}
-	spin_unlock(&pidlist_lock);
 }
 
 module_init(init_function);
