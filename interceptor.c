@@ -522,9 +522,6 @@ static void exit_function(void)
 	set_addr_ro((unsigned long) sys_call_table);
 	spin_unlock(&calltable_lock);
 	spin_lock(&pidlist_lock);
-	for(s = 0; s < NR_syscalls; s++) {
-		destroy_list(s);
-	}
 	spin_unlock(&pidlist_lock);
 }
 
