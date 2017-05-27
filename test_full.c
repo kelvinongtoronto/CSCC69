@@ -184,8 +184,12 @@ void test_syscall(int syscall) {
 		do_start(syscall, num_calls, -ENOMEM);
 		
 	} 
+	
+	do_start(syscall, 51, -ENOMEM);
+	
 	do_start(syscall, 20, 0);
 	do_stop(syscall, 20, 0);
+	
 	//EINVAL
 	//EPERM
 	//EINVAL
