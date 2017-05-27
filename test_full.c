@@ -176,7 +176,7 @@ void test_syscall(int syscall) {
 	do_start(syscall, 0, 0);
 	do_stop(syscall, 0, 0);
 	
-	//do_stop(syscall, 313, 0);
+	do_stop(syscall, 20, 0);
 	
 	do_start(syscall, 1, 0);
 	do_as_guest("./test_full stop %d 1 %d", syscall, -EPERM);
