@@ -192,13 +192,13 @@ void test_syscall(int syscall) {
 	int num_calls = 0;
 	//ENOM
 	do_intercept(syscall, 0);
-	for (num_calls = 1; num_calls < 50; num_calls ++) {
+	for (num_calls = 1; num_calls < 20; num_calls ++) {
 		
 		do_start(syscall, num_calls, 0);
 		do_stop(syscall, num_calls, 0);
 	} 
 	
-	do_start(syscall, 51, -ENOMEM);
+	do_start(syscall, 21, -ENOMEM);
 	
 	do_release(syscall, 0);
 	
