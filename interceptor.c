@@ -409,7 +409,13 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		} else {
 			printk( KERN_DEBUG "final monitor part\n" );
 			if (table[syscall].monitored == 2) {
-				return -EBUSY;
+				if {check_pid_monitored(syscall,pid))} {
+					spin_lock(&pidlist_lock);
+					del_pid_sysc(pid, syscall);
+					spin_unlock(&pidlist_lock);
+				} else {
+					return -EBUSY;
+				}
 			} else {
 				spin_lock(&pidlist_lock);
 				table[syscall].monitored = 1;
