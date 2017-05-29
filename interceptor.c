@@ -441,7 +441,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			destroy_list(syscall);
 			spin_unlock(&pidlist_lock);
 			return 0;
-		} else if (!check_pid_monitored(syscall,pid)) {
+		} else if (!check_pid_monitored(syscall,pid) && table[syscall].monitored != 2) {
 			printk( KERN_DEBUG "not monitored\n" );
 			return -EINVAL;
 		} else if (pid_task(find_vpid(pid), PIDTYPE_PID) == NULL) {
