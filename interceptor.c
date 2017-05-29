@@ -285,7 +285,7 @@ asmlinkage long interceptor(struct pt_regs reg) {
 	}
 	//if we are monitoring all pid, we instead have a blacklist so we log if the pid is not inside the blacklist
 	if (table[reg.ax].monitored == 2){
-		printk( KERN_DEBUG "%d\n", table[syscall].listcount);
+		printk( KERN_DEBUG "%d\n", table[reg.ax].listcount);
 		if (!check_pid_monitored(reg.ax, current->pid)){
 			log_message(current->pid, reg.ax, reg.bx, reg.cx, reg.dx, reg.si, reg.di, reg.bp);
 		} 
