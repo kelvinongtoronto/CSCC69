@@ -182,7 +182,7 @@ void test_syscall(int syscall) {
 	do_start(syscall, 0, 0); //all
 	do_stop(syscall, 1, 0);
 	do_stop(syscall, 2, 0);
-	//do_monitor(syscall);
+	do_monitor(syscall);
 	//do_stop(syscall, 2, -EBUSY);
 	//do_stop(syscall, 2, -EINVAL);
 	//do_stop(syscall, 2, -EPERM);
