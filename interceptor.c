@@ -408,6 +408,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 				//if we are monitoring all, we need to clear the list so we can have a fresh blacklist then set monitored to 2
 				spin_lock(&pidlist_lock);
 				destroy_list(syscall);
+				INIT_LIST_HEAD (&table[syscall].my_list);
 				table[syscall].monitored = 2;
 				spin_unlock(&pidlist_lock);
 				return 0;
@@ -449,6 +450,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			printk( KERN_DEBUG "this is valid stop monitor 0\n" );
 			spin_lock(&pidlist_lock);
 			destroy_list(syscall);
+			INIT_LIST_HEAD (&table[s].my_list);
 			spin_unlock(&pidlist_lock);
 			return 0;
 		} else if (!check_pid_monitored(syscall,pid) && table[syscall].monitored != 2) {
