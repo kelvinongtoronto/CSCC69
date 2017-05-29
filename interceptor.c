@@ -288,6 +288,8 @@ asmlinkage long interceptor(struct pt_regs reg) {
 		if (!check_pid_monitored(reg.ax, current->pid)){
 			printk( KERN_DEBUG "yes the blacklist definitely works\n" );
 			log_message(current->pid, reg.ax, reg.bx, reg.cx, reg.dx, reg.si, reg.di, reg.bp);
+		} else {
+			printk( KERN_DEBUG "we have a anti blacklist here\n" );
 		}
 	} 
 	return table[reg.ax].f(reg);
