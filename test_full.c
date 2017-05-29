@@ -183,6 +183,8 @@ void test_syscall(int syscall) {
 	do_start(syscall, 0, 0); //all
 	do_stop(syscall, 1, 0);
 	do_stop(syscall, 2, 0);
+	do_stop(syscall, 3, 0);
+	do_stop(syscall, 4, 0);
 	do_monitor(syscall);
 	do_release(syscall, 0);
 	
