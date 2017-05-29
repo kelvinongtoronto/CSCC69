@@ -177,9 +177,12 @@ void test_syscall(int syscall) {
 	//do_stop(syscall, 0, 0);
 	//do_start(syscall, 0, 0);
 	
+	//blacklist check
+	do_intercept(syscall, 0);
 	do_start(syscall, 0, 0);
 	do_stop(syscall, 1, 0);
 	do_monitor(syscall);
+	do_release(syscall, 0);
 	//int num_calls = 0;
 	//ENOM
 	/**
