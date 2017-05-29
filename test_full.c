@@ -169,16 +169,20 @@ int do_nonroot(int syscall) {
 void test_syscall(int syscall) {
 
 	//clear_log();
-	do_intercept(syscall, 0);
-	do_intercept(syscall, -EBUSY);
-	do_as_guest("./test_full nonroot %d", syscall, 0);
-	do_start(syscall, -2, -EINVAL);
+	//do_intercept(syscall, 0);
+	//do_intercept(syscall, -EBUSY);
+	//do_as_guest("./test_full nonroot %d", syscall, 0);
+	//do_start(syscall, -2, -EINVAL);
+	//do_start(syscall, 0, 0);
+	//do_stop(syscall, 0, 0);
+	//do_start(syscall, 0, 0);
+	
 	do_start(syscall, 0, 0);
-	do_stop(syscall, 0, 0);
-	
-	int num_calls = 0;
+	do_stop(syscall, 1, 0);
+	do_monitor(syscall);
+	//int num_calls = 0;
 	//ENOM
-	
+	/**
 	for (num_calls = 0; num_calls < 50; num_calls ++) {
 		
 		do_start(syscall, num_calls, 0);
@@ -189,19 +193,19 @@ void test_syscall(int syscall) {
 	
 	do_start(syscall, 20, 0);
 	do_stop(syscall, 20, 0);
-	
+	**/
 	//EINVAL
 	//EPERM
 	//EINVAL
 	//EBUSY
 	
 
-	do_start(syscall, 1, 0);
-	do_as_guest("./test_full stop %d 1 %d", syscall, -EPERM);
-	do_stop(syscall, 1, 0);
-	do_as_guest("./test_full start %d -1 %d", syscall, 0);
-	do_stop(syscall, last_child, -EINVAL);
-	do_release(syscall, 0);
+	//do_start(syscall, 1, 0);
+	//do_as_guest("./test_full stop %d 1 %d", syscall, -EPERM);
+	//do_stop(syscall, 1, 0);
+	//do_as_guest("./test_full start %d -1 %d", syscall, 0);
+	//do_stop(syscall, last_child, -EINVAL);
+	//do_release(syscall, 0);
 }
 
 
