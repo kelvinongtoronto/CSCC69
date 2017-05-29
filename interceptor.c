@@ -537,7 +537,7 @@ static void exit_function(void)
 	set_addr_ro((unsigned long) sys_call_table);
 	spin_unlock(&calltable_lock);
 	spin_lock(&pidlist_lock);
-	//free memory when we exit
+	//free up memory when we exit
 	for(s = 0; s < NR_syscalls; s++) {
 		destroy_list(s);
 	}
