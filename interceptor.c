@@ -277,11 +277,13 @@ void my_exit_group(int status)
  * - Don't forget to call the original system call, so we allow processes to proceed as normal.
  */
 asmlinkage long interceptor(struct pt_regs reg) {
+	//if we are monitoring the pid, we log a message
 	if (table[reg.ax].monitored == 1) {
 		if (check_pid_monitored(reg.ax, current->pid)){
 			log_message(current->pid, reg.ax, reg.bx, reg.cx, reg.dx, reg.si, reg.di, reg.bp);
 		}
-	} 
+	}
+	//if we are monitoring all pid, we instead have a blacklist so we log if the pid is not inside the blacklist
 	if (table[reg.ax].monitored == 2){
 		if (!check_pid_monitored(reg.ax, current->pid)){
 			log_message(current->pid, reg.ax, reg.bx, reg.cx, reg.dx, reg.si, reg.di, reg.bp);
@@ -340,6 +342,7 @@ asmlinkage long interceptor(struct pt_regs reg) {
  *   you might be holding, before you exit the function (including error cases!).  
  */
 asmlinkage long my_syscall(int cmd, int syscall, int pid) {
+	//primary invalid errors
 	if(syscall < 0 || syscall > NR_syscalls || syscall == MY_CUSTOM_SYSCALL || pid < 0){
 		return -EINVAL;
 	} else if(cmd == REQUEST_SYSCALL_INTERCEPT){
@@ -397,6 +400,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			if (table[syscall].monitored == 2) {
 				return -EBUSY;
 			} else {
+				//if we are monitoring all, we need to clear the list so we can have a fresh blacklist then set monitored to 2
 				spin_lock(&pidlist_lock);
 				destroy_list(syscall);
 				table[syscall].monitored = 2;
@@ -409,6 +413,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		} else {
 			printk( KERN_DEBUG "final monitor part\n" );
 			if (table[syscall].monitored == 2) {
+				//if we are already monitoring all, we have a blacklist, so we take off a pid from the blacklist if we want to monitor it again
 				if (check_pid_monitored(syscall,pid)) {
 					spin_lock(&pidlist_lock);
 					del_pid_sysc(pid, syscall);
@@ -450,6 +455,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		} else {
 			printk( KERN_DEBUG "final stop monitor\n" );
 			if (table[syscall].monitored == 2) {
+				//if we are already monitoring all, we currently have a blacklist, so we add our pid to the blacklist to stop monitoring it
 				spin_lock(&pidlist_lock);
 				if (add_pid_sysc(pid, syscall) != 0) {
 					return -ENOMEM;
