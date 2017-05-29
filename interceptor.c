@@ -450,7 +450,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			printk( KERN_DEBUG "this is valid stop monitor 0\n" );
 			spin_lock(&pidlist_lock);
 			destroy_list(syscall);
-			INIT_LIST_HEAD (&table[s].my_list);
+			INIT_LIST_HEAD (&table[syscall].my_list);
 			spin_unlock(&pidlist_lock);
 			return 0;
 		} else if (!check_pid_monitored(syscall,pid) && table[syscall].monitored != 2) {
