@@ -178,6 +178,7 @@ void test_syscall(int syscall) {
 	//do_start(syscall, 0, 0);
 	
 	//blacklist check
+	/**
 	do_intercept(syscall, 0);
 	do_start(syscall, 0, 0); //all
 	do_stop(syscall, 1, 0);
@@ -185,15 +186,13 @@ void test_syscall(int syscall) {
 	do_stop(syscall, 3, 0);
 	do_stop(syscall, 4, 0);
 	do_monitor(syscall);
-	//do_stop(syscall, 2, -EBUSY);
-	//do_stop(syscall, 2, -EINVAL);
-	//do_stop(syscall, 2, -EPERM);
-	//do_monitor(syscall);
 	do_release(syscall, 0);
-	//int num_calls = 0;
+	**/
+	
+	int num_calls = 0;
 	//ENOM
-	/**
-	for (num_calls = 0; num_calls < 50; num_calls ++) {
+	do_intercept(syscall, 0);
+	for (num_calls = 1; num_calls < 50; num_calls ++) {
 		
 		do_start(syscall, num_calls, 0);
 		do_stop(syscall, num_calls, 0);
@@ -201,9 +200,8 @@ void test_syscall(int syscall) {
 	
 	do_start(syscall, 51, -ENOMEM);
 	
-	do_start(syscall, 20, 0);
-	do_stop(syscall, 20, 0);
-	**/
+	do_release(syscall, 0);
+	
 	//EINVAL
 	//EPERM
 	//EINVAL
