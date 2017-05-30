@@ -401,7 +401,16 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		}else if (pid == 0) {
 			printk( KERN_DEBUG "monitor all\n" );
 			if (table[syscall].monitored == 2) {
-				return -EBUSY;
+				//if our list isn't empty, then we have a blacklist with items in it, so we clear it again
+				if (table[syscall].listcount != 0) {
+					spin_lock(&pidlist_lock);
+					destroy_list(syscall);
+					table[syscall].monitored = 2;
+					spin_unlock(&pidlist_lock);
+					return 0;
+				} else {
+					return -EBUSY;
+				}
 			} else {
 				//if we are monitoring all, we need to clear the list so we can have a fresh blacklist then set monitored to 2
 				spin_lock(&pidlist_lock);
